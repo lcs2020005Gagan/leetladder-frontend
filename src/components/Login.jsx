@@ -4,7 +4,7 @@ import Modal from './Modal'
 import {  useNavigate } from "react-router-dom";
 import Loading from "./Loading";
 
-const BACKEND = process.env.REACT_APP_BACKEND
+const BACKEND = 'http://localhost:5000'
 
 function Login() {
   const [loading, setLoading] = useState(false);

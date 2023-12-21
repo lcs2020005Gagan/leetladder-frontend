@@ -1,4 +1,4 @@
-import { React,useState } from "react";
+import { React,useState,useEffect } from "react";
 import Modal from './Modal'
 import {useNavigate} from "react-router-dom";
 import Loading from "./Loading";
@@ -10,13 +10,38 @@ const BACKEND = process.env.REACT_APP_BACKEND
 const MIN_PASSWORD_LENGTH = 8;
 
 function Login() {
+
+  
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [passwordCheck, setPasswordCheck] = useState(null);
   const [passwordStatus, setPasswordStatus] = useState(null);
+  const [usernameAvailability, setUsernameAvailability] = useState(null);
+
+
   const navigate = useNavigate();
+  const checkUsernameAvailability = async (username) => {
+    setUsername(username);
+    if(username.length===0){
+      setUsernameAvailability(false);
+      return;
+    }
+    try {
+      const response = await fetch(`http://localhost:5000/auth/check-username/${username}`);
+      // console.log(username,response.ok);
+      if (response.ok) {
+        const data = await response.json();
+        setUsernameAvailability(data.available);
+      } else {
+        setUsernameAvailability(false);
+      }
+    } catch (error) {
+      console.error('Error checking username availability:', error);
+    }
+  };
+
 
   const checkPasswordStrength = (password) => {
     if (password.length < MIN_PASSWORD_LENGTH) {
@@ -54,7 +79,7 @@ function Login() {
       if(setPasswordStatus){
         setError(passwordCheck)
       }
-      const response = await fetch(BACKEND + "/auth/signup", {
+      const response = await fetch( "http://localhost:5000/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -62,18 +87,17 @@ function Login() {
         credentials: "include",
         body: JSON.stringify({ username, password }),
       });
-
       if (response.status === 409) {
         setLoading(false);
         setError("Username already exists");
         return;
       }
-
+      // console.log("response",response)
       if (response.ok) {
         setLoading(false);
         setError(null);
         const user = await response.json();
-        console.log("Signup successful");
+        // console.log("Signup successful");
         localStorage.setItem("user", JSON.stringify(user.user));
         window.location.reload();
       }
@@ -100,8 +124,15 @@ function Login() {
                 type="text"
                 value={username}
                 placeholder="A unique username"
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => {
+                  // setUsername(e.target.value);
+                 setUsernameAvailability( checkUsernameAvailability(e.target.value));
+                }
+              }
               />
+              <div className={`username-availability ${usernameAvailability ? "green-text" : "red-text"}`}>
+                  {usernameAvailability ? "Username is available" : "Username not available"}
+                </div>
               <input
                 type="password"
                 value={password}

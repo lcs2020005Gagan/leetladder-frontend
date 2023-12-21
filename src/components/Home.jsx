@@ -4,7 +4,7 @@ import { MDBProgress, MDBProgressBar } from "mdb-react-ui-kit";
 import Loading from "./Loading";
 const user = JSON.parse(localStorage.getItem("user"));
 console.log(user);
-const BACKEND = process.env.REACT_APP_BACKEND
+const BACKEND = 'http://localhost:5000'
 console.log(BACKEND);
 const Home = () => {
   const [questionsByType, setQuestionsByType] = useState({});
